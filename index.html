@@ -17,4 +17,6 @@ $('clear').onclick=()=>{if(confirm('Tüm test kayıtları silinsin mi?')){events
 $('wake').onclick=async()=>{try{if(wakeLock){await wakeLock.release();wakeLock=null;$('wake').textContent='Ekranı Açık Tut';return}wakeLock=await navigator.wakeLock.request('screen');$('wake').textContent='Ekran Kilidine İzin Ver';wakeLock.addEventListener('release',()=>{wakeLock=null;$('wake').textContent='Ekranı Açık Tut';log('WAKELOCK_RELEASE')});log('WAKELOCK_ACTIVE')}catch(e){log('WAKELOCK_ERROR',e.message);alert('Ekranı açık tutma özelliği kullanılamadı: '+e.message)}};
 if(events.length){let previous=Date.parse(events[events.length-1].time);let elapsed=now()-previous;if(elapsed>12000)log('APP_RESUME_GAP',`${Math.round(elapsed/1000)} s (uygulama yeniden açıldı)`)}
  log('APP_OPEN',document.visibilityState);$('events').textContent=events.slice(-20).reverse().map(x=>`${new Date(x.time).toLocaleTimeString('tr-TR')} | ${x.type} | ${x.detail}`).join('\n');if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(e=>log('SW_ERROR',e.message));
+// Uygulama her açıldığında konum takibini otomatik başlat.
+start();
 </script></body></html>
