@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin"><meta http-equiv="Cache-Control" content="no-store"><title>Kapı • Özel Araç Durumu</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoH4s4dD/J6mKc=" crossorigin="anonymous"><style>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin"><meta http-equiv="Cache-Control" content="no-store"><title>Kapı • Özel Araç Durumu</title><link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"><style>
 :root{font-family:system-ui,-apple-system,sans-serif;color-scheme:dark;--bg:#0c1421;--panel:#142236;--edge:#314158;--ink:#edf4fe;--sub:#afc1d7}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}header{padding:15px 22px;display:flex;gap:16px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--edge)}h1{font-size:19px;margin:0}h2{font-size:16px;margin:0 0 12px}.sub{font-size:12px;color:var(--sub)}main{padding:14px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:14px;height:calc(100dvh - 68px)}.pane{border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--panel)}.left{display:flex;flex-direction:column}.right{min-height:0;display:flex;flex-direction:column}.bar{padding:12px 14px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-bottom:1px solid var(--edge)}.bar span{margin-right:auto}button{padding:10px 15px;border:0;border-radius:9px;background:#6ad5ae;color:#071b16;font-weight:750;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:#263d58;color:white}.mapwrap{position:relative;flex:1;min-height:240px}#map{height:100%;width:100%;background:#253345}.empty{position:absolute;top:12px;left:50%;transform:translateX(-50%);max-width:90%;padding:9px 13px;border:1px solid var(--edge);border-radius:9px;color:var(--ink);pointer-events:none;text-align:center;background:rgba(12,20,33,.87);z-index:410;font-size:12px;line-height:1.4}.empty.hidden{display:none}.form{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.form label{display:grid;gap:4px;color:var(--sub);font-size:12px}.form label.wide{grid-column:1/-1}input{padding:10px;background:#0c1726;color:white;border-radius:7px;border:1px solid #435670;width:100%;min-width:0}.hint{padding:0 14px 12px;color:var(--sub);font-size:12px;line-height:1.5}.status{padding:12px 14px;color:#aebfd2;font-size:13px}.status.good{color:#75e0b3}.status.bad{color:#ffada8}.tabs{display:flex;gap:8px;padding:12px 14px;border-bottom:1px solid var(--edge)}.tabs button{font-size:12px}.data{padding:12px;overflow:auto;flex:1;min-height:0}.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.item{padding:10px;border:1px solid var(--edge);border-radius:8px;overflow-wrap:anywhere}.item small{display:block;color:var(--sub);margin-bottom:5px}.item b{font-variant-numeric:tabular-nums;font-size:14px}.raw{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;color:#d6e5fd;font-size:12px;line-height:1.55}.hidden{display:none!important}.footer{padding:10px 14px;font-size:12px;color:var(--sub);border-top:1px solid var(--edge)}a{color:#90d8ff}@media(max-width:800px){main{height:auto;grid-template-columns:1fr}.mapwrap{height:48dvh;flex:initial}.right{height:65dvh}.form{grid-template-columns:1fr 1fr}}
 
 #gate{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;background:#0c1421;padding:20px}
@@ -16,34 +16,54 @@
 .mapfullscreen .bar{flex-shrink:0}
 body.map-fullscreen{overflow:hidden}
 @media(max-width:600px){.maptools{right:8px;top:8px}.maptools button{font-size:12px;padding:7px}.mapfullscreen{inset:0!important;border-radius:0!important}}
-</style></head><body><section id="gate"><div class="login"><h2>Kapı • Özel Araç Durumu</h2><p class="sub">GPS bilgilerini görüntülemek için erişim şifresini girin.</p><label>MQTT erişim şifresi<input id="gatePassword" type="password" autocomplete="off" placeholder="Şifre" autofocus></label><button id="connect" type="button">Güvenli bağlan</button><div id="gateMessage" class="status" role="status">Bağlantı bekleniyor.</div><p class="sub">Şifre saklanmaz. Konum yalnızca sorguladığınızda alınır.</p></div></section><div id="app" class="hidden"><header><div><h1>Kapı • Özel Araç Durumu</h1><div class="sub">İstek üzerine tek seferlik canlı yanıt • Konum geçmişi tutulmaz</div></div><span id="state" class="sub">Bağlı değil</span></header><main><section class="pane left" id="mapPanel"><div class="bar"><span><strong>Konum haritası</strong> <span id="stamp" class="sub">Henüz sorgulanmadı</span></span><button id="query" disabled>Konumu sorgula</button><button id="clear" class="secondary">Temizle</button></div><div class="mapwrap"><div id="map"></div><div class="maptools" aria-label="Harita kontrolleri"><button class="smallbtn" id="zoomIn" type="button" title="Yakınlaştır" aria-label="Yakınlaştır">+</button><button class="smallbtn" id="zoomOut" type="button" title="Uzaklaştır" aria-label="Uzaklaştır">−</button><button id="centerCar" type="button" title="Son GPS konumuna git" disabled>⌖ Aracı ortala</button><button id="showTurkey" type="button">Türkiye görünümü</button><button id="fullscreenMap" type="button">⛶ Tam ekran</button></div><div id="placeholder" class="empty">GPS konumu henüz alınmadı. Harita genel görünümde.</div></div><div class="footer"><span id="mapinfo">Geçerli ve güncel GPS konumu bekleniyor.</span> <a id="mapslink" class="hidden" target="_blank" rel="noopener noreferrer">Google Haritalar'da aç</a></div></section><section class="pane right"><div class="bar"><span class="sub">EMQX bağlantısı • WSS/TLS • Yalnızca istek üzerine</span><button id="disconnect" class="secondary" type="button" disabled>Çıkış yap</button></div><p class="hint">Görüntülenen JSON ve konum yalnızca bu tarayıcı oturumunda tutulur. GitHub'a yüklenmez. Harita zemini ekran görünür olduktan sonra Türkiye genel görünümünde yüklenir. Geçerli GPS konumu alındığında harita sağlayıcısı görüntülenen bölgeyi öğrenebilir.</p><div id="message" class="status" role="status">MQTT WSS/TLS bağlantısı bekleniyor.</div><div class="tabs"><button id="pretty" class="secondary">Tüm alanlar</button><button id="rawbtn" class="secondary">Ham JSON</button></div><div class="data"><div id="fields" class="grid"><span class="sub">Sorgu sonucu burada görünecek.</span></div><pre id="raw" class="raw hidden"></pre></div><div class="footer">Veri kaynağı: ESP32 /api/home JSON • Otomatik sorgu yok • MQTT retain: kapalı</div></section></main></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script><script src="https://unpkg.com/mqtt@5.10.4/dist/mqtt.min.js" crossorigin="anonymous"></script><script>
+</style></head><body><section id="gate"><div class="login"><h2>Kapı • Özel Araç Durumu</h2><p class="sub">GPS bilgilerini görüntülemek için erişim şifresini girin.</p><label>MQTT erişim şifresi<input id="gatePassword" type="password" autocomplete="off" placeholder="Şifre" autofocus></label><button id="connect" type="button">Güvenli bağlan</button><div id="gateMessage" class="status" role="status">Bağlantı bekleniyor.</div><p class="sub">Şifre saklanmaz. Konum yalnızca sorguladığınızda alınır.</p></div></section><div id="app" class="hidden"><header><div><h1>Kapı • Özel Araç Durumu</h1><div class="sub">İstek üzerine tek seferlik canlı yanıt • Konum geçmişi tutulmaz</div></div><span id="state" class="sub">Bağlı değil</span></header><main><section class="pane left" id="mapPanel"><div class="bar"><span><strong>Konum haritası</strong> <span id="stamp" class="sub">Henüz sorgulanmadı</span></span><button id="query" disabled>Konumu sorgula</button><button id="clear" class="secondary">Temizle</button></div><div class="mapwrap"><div id="map"></div><div class="maptools" aria-label="Harita kontrolleri"><button class="smallbtn" id="zoomIn" type="button" title="Yakınlaştır" aria-label="Yakınlaştır">+</button><button class="smallbtn" id="zoomOut" type="button" title="Uzaklaştır" aria-label="Uzaklaştır">−</button><button id="centerCar" type="button" title="Son GPS konumuna git" disabled>⌖ Aracı ortala</button><button id="showTurkey" type="button">Türkiye görünümü</button><button id="fullscreenMap" type="button">⛶ Tam ekran</button></div><div id="placeholder" class="empty">GPS konumu henüz alınmadı. Harita genel görünümde.</div></div><div class="footer"><span id="mapinfo">Geçerli ve güncel GPS konumu bekleniyor.</span> <a id="mapslink" class="hidden" target="_blank" rel="noopener noreferrer">Google Haritalar'da aç</a></div></section><section class="pane right"><div class="bar"><span class="sub">EMQX bağlantısı • WSS/TLS • Yalnızca istek üzerine</span><button id="disconnect" class="secondary" type="button" disabled>Çıkış yap</button></div><p class="hint">Görüntülenen JSON ve konum yalnızca bu tarayıcı oturumunda tutulur. GitHub'a yüklenmez. OpenFreeMap vektör haritası açılıştan sonra Türkiye genel görünümünde yüklenir. Geçerli GPS konumu alındığında harita sağlayıcısı görüntülenen bölgeyi öğrenebilir.</p><div id="message" class="status" role="status">MQTT WSS/TLS bağlantısı bekleniyor.</div><div class="tabs"><button id="pretty" class="secondary">Tüm alanlar</button><button id="rawbtn" class="secondary">Ham JSON</button></div><div class="data"><div id="fields" class="grid"><span class="sub">Sorgu sonucu burada görünecek.</span></div><pre id="raw" class="raw hidden"></pre></div><div class="footer">Veri kaynağı: ESP32 /api/home JSON • Otomatik sorgu yok • MQTT retain: kapalı</div></section></main></div>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/mqtt@5.10.4/dist/mqtt.min.js" crossorigin="anonymous"></script><script>
 'use strict';
 const $=x=>document.getElementById(x), text=(x,v)=>{$(x).textContent=v};
-let map=null,mapTiles=null; // Harita yalnızca görünür olduktan sonra başlatılır
-let marker=null,circle=null,lastPosition=null,client=null,pending=null,timeout=null,replyTopic=null,base=null;
+let map=null,mapLoaded=false; // Harita yalnızca görünür olduktan sonra başlatılır
+let marker=null,lastPosition=null,lastAccuracy=null,client=null,pending=null,timeout=null,replyTopic=null,base=null;
 const HOST='mfc1e7d3.ala.us-east-1.emqxsl.com', USERNAME='kapi_aile', PREFIX='kapi/status';const randomId=()=>Array.from(crypto.getRandomValues(new Uint8Array(12)),x=>x.toString(16).padStart(2,'0')).join('');
-function ensureMapTiles(){if(!map||mapTiles)return;mapTiles=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>',referrerPolicy:'strict-origin-when-cross-origin'}).addTo(map);mapTiles.on('tileerror',()=>{text('mapinfo','Harita zemini yüklenemedi. İnternet veya harita servisi engeli olabilir.')});}
-function initVisibleMap(){
-  // Leaflet gizli (#app display:none) bir elemanda oluşturulursa döşemeler yanlış konumlanır.
-  if($('app').classList.contains('hidden'))return;
-  if(!map){
-    map=L.map('map',{zoomControl:false,scrollWheelZoom:true,dragging:true,touchZoom:true,doubleClickZoom:true}).setView([39.0,35.0],6);
-    ensureMapTiles();
+const TURKEY=[35.0,39.0]; // MapLibre: [boylam, enlem]
+function circlePolygon(center,radius){
+  const [lon,lat]=center, pts=[]; const R=6378137;
+  for(let i=0;i<=64;i++){
+    const a=2*Math.PI*i/64;
+    const dLat=(radius*Math.cos(a)/R)*180/Math.PI;
+    const dLon=(radius*Math.sin(a)/(R*Math.max(0.01,Math.cos(lat*Math.PI/180))))*180/Math.PI;
+    pts.push([lon+dLon,lat+dLat]);
   }
-  map.invalidateSize({pan:false});
-  // CSS grid/flex yerleşiminin tamamlanmasından sonra boyutu tekrar eşitle.
-  setTimeout(()=>{if(map&&!$('app').classList.contains('hidden'))map.invalidateSize({pan:false});},150);
+  return {type:'FeatureCollection',features:[{type:'Feature',geometry:{type:'Polygon',coordinates:[pts]},properties:{}}]};
 }
-function scheduleVisibleMap(){
-  requestAnimationFrame(()=>requestAnimationFrame(initVisibleMap));
+const noAccuracy={type:'FeatureCollection',features:[]};
+function updateAccuracy(){
+  if(!map||!mapLoaded)return;
+  const src=map.getSource('gpsAccuracy');
+  if(src)src.setData(lastPosition&&lastAccuracy?circlePolygon(lastPosition,lastAccuracy):noAccuracy);
 }
-function resizeMap(){if(map&&!$('app').classList.contains('hidden')){map.invalidateSize({pan:false});setTimeout(()=>map?.invalidateSize({pan:false}),200);}}
-function centerOnCar(){if(!map||!lastPosition)return;map.setView(lastPosition,Math.max(map.getZoom(),16),{animate:true});}
+function initVisibleMap(){
+  if($('app').classList.contains('hidden'))return;
+  if(!window.maplibregl){text('mapinfo','Harita kütüphanesi yüklenemedi. İnternet bağlantısını kontrol edin.');return;}
+  if(!map){
+    map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:TURKEY,zoom:5.5,attributionControl:true});
+    map.on('load',()=>{
+      mapLoaded=true;
+      map.addSource('gpsAccuracy',{type:'geojson',data:noAccuracy});
+      map.addLayer({id:'gpsAccuracyFill',type:'fill',source:'gpsAccuracy',paint:{'fill-color':'#68d9af','fill-opacity':0.13}});
+      map.addLayer({id:'gpsAccuracyLine',type:'line',source:'gpsAccuracy',paint:{'line-color':'#68d9af','line-width':2}});
+      updateAccuracy();map.resize();
+    });
+    map.on('error',e=>{if(e?.error)text('mapinfo','Harita veri hatası: '+String(e.error.message||'Servise ulaşılamadı').slice(0,120));});
+  }
+  map.resize();
+  setTimeout(()=>{if(map&&!$('app').classList.contains('hidden'))map.resize();},150);
+}
+function scheduleVisibleMap(){requestAnimationFrame(()=>requestAnimationFrame(initVisibleMap));}
+function resizeMap(){if(map&&!$('app').classList.contains('hidden')){map.resize();setTimeout(()=>map?.resize(),200);}}
+function centerOnCar(){if(!map||!lastPosition)return;map.easeTo({center:lastPosition,zoom:Math.max(map.getZoom(),16)});}
 $('zoomIn').onclick=()=>{if(map)map.zoomIn()};
 $('zoomOut').onclick=()=>{if(map)map.zoomOut()};
 $('centerCar').onclick=centerOnCar;
-$('showTurkey').onclick=()=>{if(map)map.setView([39.0,35.0],6,{animate:true});};
+$('showTurkey').onclick=()=>{if(map)map.easeTo({center:TURKEY,zoom:5.5});};
 $('fullscreenMap').onclick=()=>{
  const full=$('mapPanel').classList.toggle('mapfullscreen');
  document.body.classList.toggle('map-fullscreen',full);
@@ -52,7 +72,7 @@ $('fullscreenMap').onclick=()=>{
 };
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('mapPanel').classList.contains('mapfullscreen'))$('fullscreenMap').click()});
 const setStatus=(msg,type='')=>{text('message',msg);$('message').className='status '+type;text('gateMessage',msg);$('gateMessage').className='status '+type};
-function clearPosition(){lastPosition=null;$('centerCar').disabled=true;if(marker){if(map)map.removeLayer(marker);marker=null}if(circle){if(map)map.removeLayer(circle);circle=null} $('placeholder').classList.remove('hidden');$('mapslink').classList.add('hidden');if(map)map.setView([39.0,35.0],6);text('mapinfo','Geçerli ve güncel GPS konumu bekleniyor.');text('stamp','Henüz sorgulanmadı');text('fields','');text('raw','');}
+function clearPosition(){lastPosition=null;lastAccuracy=null;$('centerCar').disabled=true;if(marker){marker.remove();marker=null;}updateAccuracy();$('placeholder').classList.remove('hidden');$('mapslink').classList.add('hidden');if(map)map.jumpTo({center:TURKEY,zoom:5.5});text('mapinfo','Geçerli ve güncel GPS konumu bekleniyor.');text('stamp','Henüz sorgulanmadı');text('fields','');text('raw','');}
 function abortPending(){if(timeout)clearTimeout(timeout);timeout=null;pending=null;$('query').disabled=!client?.connected;}
 function disconnect(){if($('mapPanel').classList.contains('mapfullscreen'))$('fullscreenMap').click();abortPending();if(client){client.end(true);client=null}replyTopic=null;$('connect').disabled=false;$('disconnect').disabled=true;$('query').disabled=true;text('state','Bağlı değil');$('gate').classList.remove('hidden');$('app').classList.add('hidden');setStatus('Bağlantı kapatıldı.');$('gatePassword').value='';clearPosition()}
 $('disconnect').onclick=disconnect;$('clear').onclick=clearPosition;
@@ -77,7 +97,30 @@ $('connect').onclick=()=>{
  c.on('close',()=>{if(client!==c)return;abortPending();$('connect').disabled=false;$('disconnect').disabled=true;text('state','Bağlantı kesildi');$('gate').classList.remove('hidden');$('app').classList.add('hidden');if(!$('gateMessage').textContent.includes('reddedildi'))setStatus('MQTT bağlantısı kesildi.','bad');clearPosition();client=null});
 };
 $('query').onclick=()=>{if(!client?.connected||pending)return;const requestId=randomId();pending=requestId;$('query').disabled=true;setStatus('ESP32 yanıtı bekleniyor...');clearPosition();client.publish(`${base}/request`,JSON.stringify({requestId,action:'home'}),{qos:1,retain:false},err=>{if(err){abortPending();setStatus('Sorgu gönderilemedi.','bad')}});timeout=setTimeout(()=>{if(pending===requestId){abortPending();setStatus('ESP32 yanıt vermedi (12 saniye).','bad')}},12000)};
-function showData(d){const box=$('fields');box.replaceChildren();for(const [k,v] of Object.entries(d)){const el=document.createElement('div');el.className='item';const small=document.createElement('small'),bold=document.createElement('b');small.textContent=k;bold.textContent=v===null?'—':typeof v==='object'?JSON.stringify(v):String(v);el.append(small,bold);box.append(el)}text('raw',JSON.stringify(d,null,2));text('stamp','• Son yanıt '+new Date().toLocaleTimeString('tr-TR'));const lat=d.lat,lon=d.lon,age=d.age_ms;const valid=d.fix_ok===true&&d.fresh===true&&typeof lat==='number'&&typeof lon==='number'&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180&&!(lat===0&&lon===0)&&typeof age==='number'&&age<3500;const label=valid?'GPS':'GPS YOK';text('mapinfo',label+(typeof age==='number'?' • Ölçüm yaşı '+age+' ms':''));if(!valid){$('placeholder').classList.remove('hidden');return}const p=[lat,lon];lastPosition=p;$('centerCar').disabled=false;if(!map)initVisibleMap();ensureMapTiles();$('placeholder').classList.add('hidden');marker=L.marker(p).addTo(map).bindPopup('GPS • '+lat.toFixed(6)+', '+lon.toFixed(6));if(typeof d.hacc==='number'&&d.hacc>0&&d.hacc<5000)circle=L.circle(p,{radius:d.hacc,color:'#68d9af',fillOpacity:.12}).addTo(map);map.setView(p,Math.max(map.getZoom(),15));resizeMap();const url='https://www.google.com/maps?q='+encodeURIComponent(lat+','+lon);$('mapslink').href=url;$('mapslink').classList.remove('hidden');}
+function showData(d){
+ const box=$('fields');box.replaceChildren();
+ for(const [k,v] of Object.entries(d)){
+  const el=document.createElement('div');el.className='item';
+  const small=document.createElement('small'),bold=document.createElement('b');
+  small.textContent=k;bold.textContent=v===null?'—':typeof v==='object'?JSON.stringify(v):String(v);
+  el.append(small,bold);box.append(el);
+ }
+ text('raw',JSON.stringify(d,null,2));
+ text('stamp','• Son yanıt '+new Date().toLocaleTimeString('tr-TR'));
+ const lat=d.lat,lon=d.lon,age=d.age_ms;
+ const valid=d.fix_ok===true&&d.fresh===true&&typeof lat==='number'&&typeof lon==='number'&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180&&!(lat===0&&lon===0)&&typeof age==='number'&&age<3500;
+ text('mapinfo',(valid?'GPS':'GPS YOK')+(typeof age==='number'?' • Ölçüm yaşı '+age+' ms':''));
+ if(!valid){$('placeholder').classList.remove('hidden');return;}
+ lastPosition=[lon,lat];lastAccuracy=typeof d.hacc==='number'&&d.hacc>0&&d.hacc<5000?d.hacc:null;
+ $('centerCar').disabled=false;
+ if(!map)initVisibleMap();
+ $('placeholder').classList.add('hidden');
+ if(marker)marker.remove();
+ marker=new maplibregl.Marker({color:'#12b981'}).setLngLat(lastPosition).setPopup(new maplibregl.Popup().setText('GPS • '+lat.toFixed(6)+', '+lon.toFixed(6))).addTo(map);
+ updateAccuracy();map.easeTo({center:lastPosition,zoom:Math.max(map.getZoom(),15)});resizeMap();
+ $('mapslink').href='https://www.google.com/maps?q='+encodeURIComponent(lat+','+lon);
+ $('mapslink').classList.remove('hidden');
+}
 window.addEventListener('resize',resizeMap);
 window.addEventListener('pagehide',()=>{if(client)client.end(true);client=null;abortPending();clearPosition()});
 </script></body></html>
