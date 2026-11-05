@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin"><meta http-equiv="Cache-Control" content="no-store"><title>Kapı • Özel Araç Durumu</title><link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"><style>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin"><meta http-equiv="Cache-Control" content="no-store"><title>Araç Takip</title><link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"><style>
 :root{font-family:system-ui,-apple-system,sans-serif;color-scheme:dark;--bg:#0c1421;--panel:#142236;--edge:#314158;--ink:#edf4fe;--sub:#afc1d7}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}header{padding:15px 22px;display:flex;gap:16px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--edge)}h1{font-size:19px;margin:0}h2{font-size:16px;margin:0 0 12px}.sub{font-size:12px;color:var(--sub)}main{padding:14px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:14px;height:calc(100dvh - 68px)}.pane{border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--panel)}.left{display:flex;flex-direction:column}.right{min-height:0;display:flex;flex-direction:column}.bar{padding:12px 14px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-bottom:1px solid var(--edge)}.bar span{margin-right:auto}button{padding:10px 15px;border:0;border-radius:9px;background:#6ad5ae;color:#071b16;font-weight:750;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:#263d58;color:white}.mapwrap{position:relative;flex:1;min-height:240px}#map{height:100%;width:100%;background:#253345}.empty{position:absolute;top:12px;left:50%;transform:translateX(-50%);max-width:90%;padding:9px 13px;border:1px solid var(--edge);border-radius:9px;color:var(--ink);pointer-events:none;text-align:center;background:rgba(12,20,33,.87);z-index:410;font-size:12px;line-height:1.4}.empty.hidden{display:none}.form{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.form label{display:grid;gap:4px;color:var(--sub);font-size:12px}.form label.wide{grid-column:1/-1}input{padding:10px;background:#0c1726;color:white;border-radius:7px;border:1px solid #435670;width:100%;min-width:0}.hint{padding:0 14px 12px;color:var(--sub);font-size:12px;line-height:1.5}.status{padding:12px 14px;color:#aebfd2;font-size:13px}.status.good{color:#75e0b3}.status.bad{color:#ffada8}.tabs{display:flex;gap:8px;padding:12px 14px;border-bottom:1px solid var(--edge)}.tabs button{font-size:12px}.data{padding:12px;overflow:auto;flex:1;min-height:0}.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.item{padding:10px;border:1px solid var(--edge);border-radius:8px;overflow-wrap:anywhere}.item small{display:block;color:var(--sub);margin-bottom:5px}.item b{font-variant-numeric:tabular-nums;font-size:14px}.sectionhead{font-weight:750;margin:4px 0 10px;font-size:14px}.sat-panel{border-top:1px solid var(--edge);margin-top:16px;padding-top:14px}.satgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.value-missing{color:var(--sub)}.raw{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;color:#d6e5fd;font-size:12px;line-height:1.55}.hidden{display:none!important}.footer{padding:10px 14px;font-size:12px;color:var(--sub);border-top:1px solid var(--edge)}a{color:#90d8ff}@media(max-width:800px){main{height:auto;grid-template-columns:1fr}.mapwrap{height:48dvh;flex:initial}.right{height:65dvh}.form{grid-template-columns:1fr 1fr}}
 
 #gate{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;background:#0c1421;padding:20px}
@@ -16,7 +16,54 @@
 .mapfullscreen .bar{flex-shrink:0}
 body.map-fullscreen{overflow:hidden}
 @media(max-width:600px){.maptools{right:8px;top:8px}.maptools button{font-size:12px;padding:7px}.mapfullscreen{inset:0!important;border-radius:0!important}}
-</style></head><body><section id="gate"><div class="login"><h2>Kapı • Özel Araç Durumu</h2><p class="sub">GPS bilgilerini görüntülemek için erişim şifresini girin.</p><label>MQTT erişim şifresi<input id="gatePassword" type="password" autocomplete="off" placeholder="Şifre" autofocus></label><button id="connect" type="button">Güvenli bağlan</button><div id="gateMessage" class="status" role="status">Bağlantı bekleniyor.</div><p class="sub">Şifre saklanmaz. Her giriş 5 dakika geçerlidir. Normalde 10 sn, hızlı modda en fazla 1 dakika boyunca 1 sn aralıkla sorgulanır.</p></div></section><div id="app" class="hidden"><header><div><h1>Kapı • Özel Araç Durumu</h1><div class="sub">Normal 10 sn • Hızlı 1 sn (en fazla 1 dk) • 5 dk oturum</div></div><div style="text-align:right"><span id="state" class="sub">Bağlı değil</span><div class="sub">Oturum: <b id="sessionRemain">—</b> • <span id="modeStatus">Normal</span></div></div></header><main><section class="pane left" id="mapPanel"><div class="bar"><span><strong>Konum haritası</strong> <span id="stamp" class="sub">Henüz sorgulanmadı</span></span><button id="query" disabled>Konumu sorgula</button><button id="fastMode" class="secondary" type="button" disabled>1 sn hızlı izle (1 dk)</button><button id="clear" class="secondary">Temizle</button></div><div class="mapwrap"><div id="map"></div><div class="maptools" aria-label="Harita kontrolleri"><button class="smallbtn" id="zoomIn" type="button" title="Yakınlaştır" aria-label="Yakınlaştır">+</button><button class="smallbtn" id="zoomOut" type="button" title="Uzaklaştır" aria-label="Uzaklaştır">−</button><button id="centerCar" type="button" title="Son GPS konumuna git" disabled>⌖ Aracı ortala</button><button id="showTurkey" type="button">Türkiye görünümü</button><button id="fullscreenMap" type="button">⛶ Tam ekran</button></div><div id="placeholder" class="empty">GPS konumu henüz alınmadı. Harita genel görünümde.</div></div><div class="footer"><span id="mapinfo">Geçerli ve güncel GPS konumu bekleniyor.</span> <a id="mapslink" class="hidden" target="_blank" rel="noopener noreferrer">Google Haritalar'da aç</a></div></section><section class="pane right"><div class="bar"><span class="sub">EMQX bağlantısı • WSS/TLS • Yalnızca sayfa görünürken sorgu</span><button id="disconnect" class="secondary" type="button" disabled>Çıkış yap</button></div><p class="hint">Görüntülenen JSON ve konum yalnızca bu tarayıcı oturumunda tutulur. GitHub'a yüklenmez. OpenFreeMap vektör haritası açılıştan sonra Türkiye genel görünümünde yüklenir. Geçerli GPS konumu alındığında harita sağlayıcısı görüntülenen bölgeyi öğrenebilir.</p><div id="message" class="status" role="status">MQTT WSS/TLS bağlantısı bekleniyor.</div><div class="tabs"><button id="pretty" class="secondary">Araç bilgileri</button><button id="rawbtn" class="secondary">Ham JSON</button></div><div class="data"><div id="fields"><span class="sub">Sorgu sonucu burada görünecek.</span></div><pre id="raw" class="raw hidden"></pre></div><div class="footer">Veri kaynağı: ESP32 /api/home JSON • Normal 10 sn / Hızlı 1 sn • 5 dk oturum • MQTT retain: kapalı</div></section></main></div>
+
+/* v4.0.11: sade arayüz ve belirgin bilgi bölümleri */
+.info-section{border:1px solid #496181;border-radius:12px;padding:13px;margin-bottom:15px;background:#17273c}
+.info-section .sectionhead{font-size:15px;margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid #496181}
+.info-section.sat-section{background:#182b41;border-color:#5b799b}
+.info-section.motor-section{background:#172b31;border-color:#4e7777}
+.info-section.motor-section .sectionhead{border-bottom-color:#4e7777}
+.info-section .item{background:#0c1b2d}
+.info-section.motor-section .item{background:#11252a}
+.info-section .item small{font-size:12px}
+.info-section .item b{font-size:15px}
+#fastMode.is-fast{background:#f7b56c;color:#23150b}
+#fastMode:focus-visible{outline:3px solid #a4dffc;outline-offset:2px}
+#gate .login{gap:16px}
+#gate .login .status{min-height:18px}
+.right>.bar>strong{margin-right:auto}
+@media(min-width:920px){.satgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style></head><body><section id="gate"><div class="login">
+  <h2>Araç Takip</h2>
+  <label>Şifre<input id="gatePassword" type="password" autocomplete="off" placeholder="Şifre" autofocus></label>
+  <button id="connect" type="button">Giriş Yap</button>
+  <div id="gateMessage" class="status" role="status"></div>
+</div></section>
+<div id="app" class="hidden">
+  <header><h1>Araç Takip</h1><div style="text-align:right"><span id="state" class="sub">Bağlı değil</span><div class="sub">Oturum: <b id="sessionRemain">—</b> · <span id="modeStatus">Normal</span></div></div></header>
+  <main>
+    <section class="pane left" id="mapPanel">
+      <div class="bar"><span><strong>Harita</strong> <span id="stamp" class="sub">—</span></span>
+        <button id="query" disabled>Konumu Sorgula</button>
+        <button id="fastMode" class="secondary" type="button" title="istersen abartmayalım" disabled>Hızlı Modu Başlat</button>
+        <button id="clear" class="secondary">Temizle</button>
+      </div>
+      <div class="mapwrap"><div id="map"></div><div class="maptools" aria-label="Harita kontrolleri">
+        <button class="smallbtn" id="zoomIn" type="button" title="Yakınlaştır" aria-label="Yakınlaştır">+</button>
+        <button class="smallbtn" id="zoomOut" type="button" title="Uzaklaştır" aria-label="Uzaklaştır">−</button>
+        <button id="centerCar" type="button" title="Son GPS konumuna git" disabled>⌖ Aracı Ortala</button>
+        <button id="showTurkey" type="button">Türkiye</button>
+        <button id="fullscreenMap" type="button">⛶ Tam ekran</button>
+      </div><div id="placeholder" class="empty">GPS bekleniyor</div></div>
+      <div class="footer"><span id="mapinfo">GPS bekleniyor</span> <a id="mapslink" class="hidden" target="_blank" rel="noopener noreferrer">Google Haritalar'da aç</a></div>
+    </section>
+    <section class="pane right"><div class="bar"><strong>Bilgiler</strong><button id="disconnect" class="secondary" type="button" disabled>Çıkış Yap</button></div>
+      <div id="message" class="status" role="status"></div>
+      <div class="tabs"><button id="pretty" class="secondary">Araç Bilgileri</button><button id="rawbtn" class="secondary">Ham JSON</button></div>
+      <div class="data"><div id="fields"></div><pre id="raw" class="raw hidden"></pre></div>
+    </section>
+  </main>
+</div>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/mqtt@5.10.4/dist/mqtt.min.js" crossorigin="anonymous"></script><script>
 'use strict';
 const $=x=>document.getElementById(x), text=(x,v)=>{$(x).textContent=v};
@@ -95,7 +142,7 @@ function startPolling(){
  const interval=rapidActive?FAST_POLL_MS:NORMAL_POLL_MS;
  pollTimer=setInterval(()=>{
   if(sessionExpired()){disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');return;}
-  if(rapidActive&&Date.now()>=rapidEndsAt){rapidActive=false;rapidEndsAt=0;startPolling();refreshSessionUI();return;}
+  if(rapidActive&&Date.now()>=rapidEndsAt){stopRapidMode(false);refreshSessionUI();return;}
   if(loggedIn()&&!document.hidden&&!pending)$('query').click();
  },interval);
 }
@@ -103,18 +150,22 @@ function refreshSessionUI(){
  if(!loggedIn())return;
  if(sessionExpired()){disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');return;}
  const now=Date.now();
- if(rapidActive&&now>=rapidEndsAt){rapidActive=false;rapidEndsAt=0;startPolling();}
+ if(rapidActive&&now>=rapidEndsAt){stopRapidMode(false);}
  text('sessionRemain',timeLeft(sessionEndsAt-now));
  const button=$('fastMode');
  if(rapidActive){
-  button.disabled=true;
-  button.textContent='Hızlı mod: '+timeLeft(rapidEndsAt-now);
+  button.disabled=document.hidden;
+  button.classList.add('is-fast');
+  button.textContent='Hızlı Modu Durdur · '+timeLeft(rapidEndsAt-now);
+  button.title='Hızlı modu durdur';
   text('modeStatus','1 sn hızlı izleme');
  }else{
   const cooldown=Math.max(0,readRapidCooldown()-now);
+  button.classList.remove('is-fast');
   button.disabled=document.hidden||cooldown>0;
-  button.textContent=cooldown>0?'Hızlı mod bekleme: '+timeLeft(cooldown):'1 sn hızlı izle (1 dk)';
-  text('modeStatus',cooldown>0?'10 sn • Hızlı mod beklemede':'10 sn normal');
+  button.textContent=cooldown>0?'Hızlı Mod Bekleme · '+timeLeft(cooldown):'Hızlı Modu Başlat';
+  button.title=cooldown>0?'Hızlı mod beklemede':'istersen abartmayalım';
+  text('modeStatus','10 sn normal');
  }
 }
 function startSessionTimers(){
@@ -124,14 +175,24 @@ function startSessionTimers(){
  countdownTimer=setInterval(refreshSessionUI,1000);
  refreshSessionUI();
 }
-// Hızlı mod 60 saniye sürer. Ardından otomatik olarak 10 saniyelik moda dönülür.
-// Tekrar açılabilme saati yalnızca süre olarak saklanır; şifre veya konum depolanmaz.
+// Hızlı izleme düğmesi aç/kapat. Otomatik 60 saniye sonunda normal 10 sn moduna döner.
+// Tekrar açabilmek için bitişten itibaren 5 dakika bekleme gerekir.
+function stopRapidMode(manual){
+ if(!rapidActive)return;
+ rapidActive=false;rapidEndsAt=0;
+ // Erken durdurulursa bekleme süresi gerçek durdurma anından başlar.
+ if(manual)saveRapidCooldown(Date.now()+FAST_COOLDOWN_MS);
+ startPolling();
+}
 $('fastMode').onclick=()=>{
  if(!loggedIn())return;
  if(sessionExpired()){disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');return;}
+ if(document.hidden)return;
+ if(rapidActive){stopRapidMode(true);refreshSessionUI();return;}
  const now=Date.now();
- if(document.hidden||rapidActive||readRapidCooldown()>now)return;
+ if(readRapidCooldown()>now)return;
  rapidActive=true;rapidEndsAt=now+FAST_WINDOW_MS;
+ // Sekme kapansa veya yeniden açılsa da bekleme atlatılamasın.
  saveRapidCooldown(rapidEndsAt+FAST_COOLDOWN_MS);
  startPolling();refreshSessionUI();
  if(!pending)$('query').click();
@@ -151,7 +212,7 @@ function disconnect(reason='Bağlantı kapatıldı.'){
  if($('mapPanel').classList.contains('mapfullscreen'))$('fullscreenMap').click();
  abortPending();const old=client;client=null;if(old)old.end(true);
  replyTopic=null;$('connect').disabled=false;$('disconnect').disabled=true;$('query').disabled=true;$('fastMode').disabled=true;
- text('state','Bağlı değil');text('sessionRemain','—');text('modeStatus','Normal');$('fastMode').textContent='1 sn hızlı izle (1 dk)';
+ text('state','Bağlı değil');text('sessionRemain','—');text('modeStatus','Normal');$('fastMode').textContent='Hızlı Modu Başlat';$('fastMode').title='istersen abartmayalım';$('fastMode').classList.remove('is-fast');
  $('gate').classList.remove('hidden');$('app').classList.add('hidden');setStatus(reason,reason.includes('doldu')?'bad':'');
  $('gatePassword').value='';clearPosition();
 }
@@ -193,11 +254,12 @@ function showData(d){
  const makeItem=(grid,label,value)=>{
    const el=document.createElement('div');el.className='item';
    const small=document.createElement('small'),bold=document.createElement('b');
-   small.textContent=label;bold.textContent=String(value);if(value==='—')bold.classList.add('value-missing');
+   small.textContent=label;bold.textContent=String(value);if(String(value).startsWith('—'))bold.classList.add('value-missing');
    el.append(small,bold);grid.append(el);
  };
- makeHead('Araç ve Rota',box);
- const cards=makeGrid(box,'grid');
+ const vehicle=document.createElement('section');vehicle.className='info-section vehicle-section';box.append(vehicle);
+ makeHead('Araç ve Rota',vehicle);
+ const cards=makeGrid(vehicle,'grid');
  makeItem(cards,'GPS Durumu',flag?'GPS Aktif':'GPS Yok');
  makeItem(cards,'Hız',num(d.speed,1,'km/sa'));
  makeItem(cards,'Hedef',target||'—');
@@ -206,12 +268,21 @@ function showData(d){
  makeItem(cards,'Rakım',num(d.altitude,1,'m'));
  makeItem(cards,'Ölçüm Yaşı',num(typeof d.age_ms==='number'?d.age_ms/1000:null,1,'sn'));
  makeItem(cards,'Son Sorgulama',new Date().toLocaleTimeString('tr-TR'));
- const sat=document.createElement('div');sat.className='sat-panel';box.append(sat);
+ const sat=document.createElement('section');sat.className='info-section sat-section';box.append(sat);
  makeHead('Uydu Bilgileri',sat);
  const sg=makeGrid(sat,'satgrid');
  makeItem(sg,'Kullanılan Uydu',num(d.sats_used,0,'adet'));
  makeItem(sg,'Yatay Doğruluk',num(d.hacc,1,'m'));
  makeItem(sg,'Dikey Doğruluk',num(d.vacc,1,'m'));
+ const motor=document.createElement('section');motor.className='info-section motor-section';box.append(motor);
+ makeHead('Araç ve Motor',motor);
+ const mg=makeGrid(motor,'grid');
+ makeItem(mg,'Motor Devri','— RPM');
+ makeItem(mg,'Yakıt Seviyesi','— %');
+ makeItem(mg,'Su Sıcaklığı','— °C');
+ makeItem(mg,'Motor Yükü','— %');
+ makeItem(mg,'Akü Gerilimi','— V');
+ makeItem(mg,'Anlık Tüketim','— L/100 km');
  text('raw',JSON.stringify(d,null,2));
  text('stamp','• Son yanıt '+new Date().toLocaleTimeString('tr-TR'));
  const lat=d.lat,lon=d.lon,age=d.age_ms;
