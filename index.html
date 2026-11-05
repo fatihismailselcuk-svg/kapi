@@ -16,13 +16,20 @@
 .mapfullscreen .bar{flex-shrink:0}
 body.map-fullscreen{overflow:hidden}
 @media(max-width:600px){.maptools{right:8px;top:8px}.maptools button{font-size:12px;padding:7px}.mapfullscreen{inset:0!important;border-radius:0!important}}
-</style></head><body><section id="gate"><div class="login"><h2>Kapı • Özel Araç Durumu</h2><p class="sub">GPS bilgilerini görüntülemek için erişim şifresini girin.</p><label>MQTT erişim şifresi<input id="gatePassword" type="password" autocomplete="off" placeholder="Şifre" autofocus></label><button id="connect" type="button">Güvenli bağlan</button><div id="gateMessage" class="status" role="status">Bağlantı bekleniyor.</div><p class="sub">Şifre saklanmaz. Girişte hemen sorgulanır; sayfa açık ve görünürken 10 saniyede bir güncellenir.</p></div></section><div id="app" class="hidden"><header><div><h1>Kapı • Özel Araç Durumu</h1><div class="sub">Sayfa görünürken 10 saniyede bir otomatik sorgu • Konum geçmişi tutulmaz</div></div><span id="state" class="sub">Bağlı değil</span></header><main><section class="pane left" id="mapPanel"><div class="bar"><span><strong>Konum haritası</strong> <span id="stamp" class="sub">Henüz sorgulanmadı</span></span><button id="query" disabled>Konumu sorgula</button><button id="clear" class="secondary">Temizle</button></div><div class="mapwrap"><div id="map"></div><div class="maptools" aria-label="Harita kontrolleri"><button class="smallbtn" id="zoomIn" type="button" title="Yakınlaştır" aria-label="Yakınlaştır">+</button><button class="smallbtn" id="zoomOut" type="button" title="Uzaklaştır" aria-label="Uzaklaştır">−</button><button id="centerCar" type="button" title="Son GPS konumuna git" disabled>⌖ Aracı ortala</button><button id="showTurkey" type="button">Türkiye görünümü</button><button id="fullscreenMap" type="button">⛶ Tam ekran</button></div><div id="placeholder" class="empty">GPS konumu henüz alınmadı. Harita genel görünümde.</div></div><div class="footer"><span id="mapinfo">Geçerli ve güncel GPS konumu bekleniyor.</span> <a id="mapslink" class="hidden" target="_blank" rel="noopener noreferrer">Google Haritalar'da aç</a></div></section><section class="pane right"><div class="bar"><span class="sub">EMQX bağlantısı • WSS/TLS • Yalnızca sayfa görünürken sorgu</span><button id="disconnect" class="secondary" type="button" disabled>Çıkış yap</button></div><p class="hint">Görüntülenen JSON ve konum yalnızca bu tarayıcı oturumunda tutulur. GitHub'a yüklenmez. OpenFreeMap vektör haritası açılıştan sonra Türkiye genel görünümünde yüklenir. Geçerli GPS konumu alındığında harita sağlayıcısı görüntülenen bölgeyi öğrenebilir.</p><div id="message" class="status" role="status">MQTT WSS/TLS bağlantısı bekleniyor.</div><div class="tabs"><button id="pretty" class="secondary">Araç bilgileri</button><button id="rawbtn" class="secondary">Ham JSON</button></div><div class="data"><div id="fields"><span class="sub">Sorgu sonucu burada görünecek.</span></div><pre id="raw" class="raw hidden"></pre></div><div class="footer">Veri kaynağı: ESP32 /api/home JSON • Girişte hemen, sonra 10 sn aralıkla sorgu • MQTT retain: kapalı</div></section></main></div>
+</style></head><body><section id="gate"><div class="login"><h2>Kapı • Özel Araç Durumu</h2><p class="sub">GPS bilgilerini görüntülemek için erişim şifresini girin.</p><label>MQTT erişim şifresi<input id="gatePassword" type="password" autocomplete="off" placeholder="Şifre" autofocus></label><button id="connect" type="button">Güvenli bağlan</button><div id="gateMessage" class="status" role="status">Bağlantı bekleniyor.</div><p class="sub">Şifre saklanmaz. Her giriş 5 dakika geçerlidir. Normalde 10 sn, hızlı modda en fazla 1 dakika boyunca 1 sn aralıkla sorgulanır.</p></div></section><div id="app" class="hidden"><header><div><h1>Kapı • Özel Araç Durumu</h1><div class="sub">Normal 10 sn • Hızlı 1 sn (en fazla 1 dk) • 5 dk oturum</div></div><div style="text-align:right"><span id="state" class="sub">Bağlı değil</span><div class="sub">Oturum: <b id="sessionRemain">—</b> • <span id="modeStatus">Normal</span></div></div></header><main><section class="pane left" id="mapPanel"><div class="bar"><span><strong>Konum haritası</strong> <span id="stamp" class="sub">Henüz sorgulanmadı</span></span><button id="query" disabled>Konumu sorgula</button><button id="fastMode" class="secondary" type="button" disabled>1 sn hızlı izle (1 dk)</button><button id="clear" class="secondary">Temizle</button></div><div class="mapwrap"><div id="map"></div><div class="maptools" aria-label="Harita kontrolleri"><button class="smallbtn" id="zoomIn" type="button" title="Yakınlaştır" aria-label="Yakınlaştır">+</button><button class="smallbtn" id="zoomOut" type="button" title="Uzaklaştır" aria-label="Uzaklaştır">−</button><button id="centerCar" type="button" title="Son GPS konumuna git" disabled>⌖ Aracı ortala</button><button id="showTurkey" type="button">Türkiye görünümü</button><button id="fullscreenMap" type="button">⛶ Tam ekran</button></div><div id="placeholder" class="empty">GPS konumu henüz alınmadı. Harita genel görünümde.</div></div><div class="footer"><span id="mapinfo">Geçerli ve güncel GPS konumu bekleniyor.</span> <a id="mapslink" class="hidden" target="_blank" rel="noopener noreferrer">Google Haritalar'da aç</a></div></section><section class="pane right"><div class="bar"><span class="sub">EMQX bağlantısı • WSS/TLS • Yalnızca sayfa görünürken sorgu</span><button id="disconnect" class="secondary" type="button" disabled>Çıkış yap</button></div><p class="hint">Görüntülenen JSON ve konum yalnızca bu tarayıcı oturumunda tutulur. GitHub'a yüklenmez. OpenFreeMap vektör haritası açılıştan sonra Türkiye genel görünümünde yüklenir. Geçerli GPS konumu alındığında harita sağlayıcısı görüntülenen bölgeyi öğrenebilir.</p><div id="message" class="status" role="status">MQTT WSS/TLS bağlantısı bekleniyor.</div><div class="tabs"><button id="pretty" class="secondary">Araç bilgileri</button><button id="rawbtn" class="secondary">Ham JSON</button></div><div class="data"><div id="fields"><span class="sub">Sorgu sonucu burada görünecek.</span></div><pre id="raw" class="raw hidden"></pre></div><div class="footer">Veri kaynağı: ESP32 /api/home JSON • Normal 10 sn / Hızlı 1 sn • 5 dk oturum • MQTT retain: kapalı</div></section></main></div>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/mqtt@5.10.4/dist/mqtt.min.js" crossorigin="anonymous"></script><script>
 'use strict';
 const $=x=>document.getElementById(x), text=(x,v)=>{$(x).textContent=v};
 let map=null,mapLoaded=false; // Harita yalnızca görünür olduktan sonra başlatılır
 let marker=null,lastPosition=null,lastAccuracy=null,client=null,pending=null,timeout=null,replyTopic=null,base=null;
-const POLL_MS=10000;let pollTimer=null;
+const NORMAL_POLL_MS=10000, FAST_POLL_MS=1000, FAST_WINDOW_MS=60000, FAST_COOLDOWN_MS=300000, SESSION_WINDOW_MS=300000;
+const FAST_COOLDOWN_KEY='kapi_gps_fast_next_allowed_v1';
+let pollTimer=null, sessionTimer=null, countdownTimer=null, sessionEndsAt=0, rapidEndsAt=0, rapidNextAllowedAt=0, rapidActive=false;
+const timeLeft=ms=>{const sec=Math.max(0,Math.ceil(ms/1000));return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')};
+function readRapidCooldown(){try{const n=Number(localStorage.getItem(FAST_COOLDOWN_KEY));return Number.isFinite(n)&&n>0?Math.max(n,rapidNextAllowedAt):rapidNextAllowedAt}catch{return rapidNextAllowedAt}}
+function saveRapidCooldown(t){rapidNextAllowedAt=t;try{localStorage.setItem(FAST_COOLDOWN_KEY,String(t))}catch{ /* Depolama engellenirse bekleme bu sekmede korunur. */ }}
+const sessionExpired=()=>sessionEndsAt>0&&Date.now()>=sessionEndsAt;
+const loggedIn=()=>!!client?.connected&&!$('app').classList.contains('hidden');
 const HOST='mfc1e7d3.ala.us-east-1.emqxsl.com', USERNAME='kapi_aile', PREFIX='kapi/status';const randomId=()=>Array.from(crypto.getRandomValues(new Uint8Array(12)),x=>x.toString(16).padStart(2,'0')).join('');
 const TURKEY=[35.0,39.0]; // MapLibre: [boylam, enlem]
 function circlePolygon(center,radius){
@@ -75,24 +82,80 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('mapPanel').class
 const setStatus=(msg,type='')=>{text('message',msg);$('message').className='status '+type;text('gateMessage',msg);$('gateMessage').className='status '+type};
 function clearPosition(){lastPosition=null;lastAccuracy=null;$('centerCar').disabled=true;if(marker){marker.remove();marker=null;}updateAccuracy();$('placeholder').classList.remove('hidden');$('mapslink').classList.add('hidden');if(map)map.jumpTo({center:TURKEY,zoom:5.5});text('mapinfo','Geçerli ve güncel GPS konumu bekleniyor.');text('stamp','Henüz sorgulanmadı');text('fields','');text('raw','');}
 function stopPolling(){if(pollTimer!==null){clearInterval(pollTimer);pollTimer=null;}}
+function stopSessionTimers(){
+ if(sessionTimer!==null){clearTimeout(sessionTimer);sessionTimer=null;}
+ if(countdownTimer!==null){clearInterval(countdownTimer);countdownTimer=null;}
+ sessionEndsAt=0;rapidEndsAt=0;rapidActive=false;
+}
 function startPolling(){
  stopPolling();
- if(!client?.connected||document.hidden||$('app').classList.contains('hidden'))return;
+ if(sessionExpired()){disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');return;}
+ if(rapidActive&&Date.now()>=rapidEndsAt){rapidActive=false;rapidEndsAt=0;}
+ if(!loggedIn()||document.hidden)return;
+ const interval=rapidActive?FAST_POLL_MS:NORMAL_POLL_MS;
  pollTimer=setInterval(()=>{
-  if(client?.connected&&!document.hidden&&!$('app').classList.contains('hidden')&&!pending)$('query').click();
- },POLL_MS);
+  if(sessionExpired()){disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');return;}
+  if(rapidActive&&Date.now()>=rapidEndsAt){rapidActive=false;rapidEndsAt=0;startPolling();refreshSessionUI();return;}
+  if(loggedIn()&&!document.hidden&&!pending)$('query').click();
+ },interval);
 }
-// Arka plan sekmelerinde sorgu gönderme; tekrar görünür olunca hemen tazele.
+function refreshSessionUI(){
+ if(!loggedIn())return;
+ if(sessionExpired()){disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');return;}
+ const now=Date.now();
+ if(rapidActive&&now>=rapidEndsAt){rapidActive=false;rapidEndsAt=0;startPolling();}
+ text('sessionRemain',timeLeft(sessionEndsAt-now));
+ const button=$('fastMode');
+ if(rapidActive){
+  button.disabled=true;
+  button.textContent='Hızlı mod: '+timeLeft(rapidEndsAt-now);
+  text('modeStatus','1 sn hızlı izleme');
+ }else{
+  const cooldown=Math.max(0,readRapidCooldown()-now);
+  button.disabled=document.hidden||cooldown>0;
+  button.textContent=cooldown>0?'Hızlı mod bekleme: '+timeLeft(cooldown):'1 sn hızlı izle (1 dk)';
+  text('modeStatus',cooldown>0?'10 sn • Hızlı mod beklemede':'10 sn normal');
+ }
+}
+function startSessionTimers(){
+ stopSessionTimers();
+ sessionEndsAt=Date.now()+SESSION_WINDOW_MS;
+ sessionTimer=setTimeout(()=>{if(loggedIn())disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');},SESSION_WINDOW_MS);
+ countdownTimer=setInterval(refreshSessionUI,1000);
+ refreshSessionUI();
+}
+// Hızlı mod 60 saniye sürer. Ardından otomatik olarak 10 saniyelik moda dönülür.
+// Tekrar açılabilme saati yalnızca süre olarak saklanır; şifre veya konum depolanmaz.
+$('fastMode').onclick=()=>{
+ if(!loggedIn())return;
+ if(sessionExpired()){disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');return;}
+ const now=Date.now();
+ if(document.hidden||rapidActive||readRapidCooldown()>now)return;
+ rapidActive=true;rapidEndsAt=now+FAST_WINDOW_MS;
+ saveRapidCooldown(rapidEndsAt+FAST_COOLDOWN_MS);
+ startPolling();refreshSessionUI();
+ if(!pending)$('query').click();
+};
+// Sekme gizlendiğinde sorguyu durdur; oturum ve hızlı mod süreleri ilerlemeye devam eder.
 document.addEventListener('visibilitychange',()=>{
- if(document.hidden){stopPolling();return;}
- if(client?.connected&&!$('app').classList.contains('hidden')){
+ if(document.hidden){stopPolling();refreshSessionUI();return;}
+ if(sessionExpired()){disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');return;}
+ if(loggedIn()){
   if(!pending)$('query').click();
-  startPolling();resizeMap();
+  startPolling();refreshSessionUI();resizeMap();
  }
 });
 function abortPending(){if(timeout)clearTimeout(timeout);timeout=null;pending=null;$('query').disabled=!client?.connected;}
-function disconnect(){stopPolling();if($('mapPanel').classList.contains('mapfullscreen'))$('fullscreenMap').click();abortPending();if(client){client.end(true);client=null}replyTopic=null;$('connect').disabled=false;$('disconnect').disabled=true;$('query').disabled=true;text('state','Bağlı değil');$('gate').classList.remove('hidden');$('app').classList.add('hidden');setStatus('Bağlantı kapatıldı.');$('gatePassword').value='';clearPosition()}
-$('disconnect').onclick=disconnect;$('clear').onclick=clearPosition;
+function disconnect(reason='Bağlantı kapatıldı.'){
+ stopPolling();stopSessionTimers();
+ if($('mapPanel').classList.contains('mapfullscreen'))$('fullscreenMap').click();
+ abortPending();const old=client;client=null;if(old)old.end(true);
+ replyTopic=null;$('connect').disabled=false;$('disconnect').disabled=true;$('query').disabled=true;$('fastMode').disabled=true;
+ text('state','Bağlı değil');text('sessionRemain','—');text('modeStatus','Normal');$('fastMode').textContent='1 sn hızlı izle (1 dk)';
+ $('gate').classList.remove('hidden');$('app').classList.add('hidden');setStatus(reason,reason.includes('doldu')?'bad':'');
+ $('gatePassword').value='';clearPosition();
+}
+$('disconnect').onclick=()=>disconnect();$('clear').onclick=clearPosition;
 $('pretty').onclick=()=>{$('fields').classList.remove('hidden');$('raw').classList.add('hidden')};$('rawbtn').onclick=()=>{$('fields').classList.add('hidden');$('raw').classList.remove('hidden')};
 $('gatePassword').addEventListener('keydown',e=>{if(e.key==='Enter')$('connect').click()});
 $('connect').onclick=()=>{
@@ -108,15 +171,17 @@ $('connect').onclick=()=>{
   if(err||!granted?.length||granted.some(x=>x.qos===128)){setStatus('Yanıt topic aboneliği reddedildi. EMQX izinlerini kontrol edin.','bad');c.end(true);return;}
   $('gatePassword').value='';$('gate').classList.add('hidden');$('app').classList.remove('hidden');scheduleVisibleMap();
   $('query').disabled=false;$('disconnect').disabled=false;text('state','WSS bağlı');setStatus('Bağlandı. İlk konum otomatik sorgulanıyor...','good');
-  // İlk sorgu hemen, sonraki sorgular 10 saniyede bir.
+  // Başarılı girişten itibaren 5 dakikalık süre başlar.
+  startSessionTimers();
+  // İlk sorgu hemen, ardından 10 saniyelik normal döngü.
   if(!document.hidden)$('query').click();
   startPolling();
  })});
- c.on('message',(topic,bytes)=>{if(client!==c||topic!==replyTopic||!pending)return;try{if(bytes.length>32768)throw Error('Yanıt fazla büyük');const obj=JSON.parse(bytes.toString());if(!obj||obj.requestId!==pending||typeof obj.data!=='object'||obj.data===null||Array.isArray(obj.data))return;abortPending();showData(obj.data);setStatus('ESP32 yanıtı alındı.','good')}catch(e){setStatus('Geçersiz MQTT yanıtı: '+e.message,'bad')}});
+ c.on('message',(topic,bytes)=>{if(client!==c||topic!==replyTopic||!pending)return;if(sessionExpired()){disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');return;}try{if(bytes.length>32768)throw Error('Yanıt fazla büyük');const obj=JSON.parse(bytes.toString());if(!obj||obj.requestId!==pending||typeof obj.data!=='object'||obj.data===null||Array.isArray(obj.data))return;abortPending();showData(obj.data);setStatus('ESP32 yanıtı alındı.','good')}catch(e){setStatus('Geçersiz MQTT yanıtı: '+e.message,'bad')}});
  c.on('error',()=>{if(client===c)setStatus('MQTT bağlantısı başarısız. Şifre veya yetkileri kontrol edin.','bad')});
- c.on('close',()=>{if(client!==c)return;stopPolling();abortPending();$('connect').disabled=false;$('disconnect').disabled=true;text('state','Bağlantı kesildi');$('gate').classList.remove('hidden');$('app').classList.add('hidden');if(!$('gateMessage').textContent.includes('reddedildi'))setStatus('MQTT bağlantısı kesildi.','bad');clearPosition();client=null});
+ c.on('close',()=>{if(client!==c)return;stopPolling();stopSessionTimers();abortPending();$('connect').disabled=false;$('disconnect').disabled=true;$('fastMode').disabled=true;text('state','Bağlantı kesildi');text('sessionRemain','—');text('modeStatus','Normal');$('gate').classList.remove('hidden');$('app').classList.add('hidden');if(!$('gateMessage').textContent.includes('reddedildi'))setStatus('MQTT bağlantısı kesildi.','bad');clearPosition();client=null});
 };
-$('query').onclick=()=>{if(!client?.connected||pending)return;const requestId=randomId();pending=requestId;$('query').disabled=true;setStatus('ESP32 yanıtı bekleniyor...');client.publish(`${base}/request`,JSON.stringify({requestId,action:'home'}),{qos:1,retain:false},err=>{if(err){abortPending();setStatus('Sorgu gönderilemedi.','bad')}});timeout=setTimeout(()=>{if(pending===requestId){abortPending();setStatus('ESP32 yanıt vermedi (12 saniye).','bad')}},12000)};
+$('query').onclick=()=>{if(!client?.connected||pending)return;if(sessionExpired()){disconnect('5 dakikalık izleme süresi doldu. Yeniden şifre girin.');return;}const requestId=randomId();pending=requestId;$('query').disabled=true;setStatus('ESP32 yanıtı bekleniyor...');client.publish(`${base}/request`,JSON.stringify({requestId,action:'home'}),{qos:1,retain:false},err=>{if(err){abortPending();setStatus('Sorgu gönderilemedi.','bad')}});timeout=setTimeout(()=>{if(pending===requestId){abortPending();setStatus('ESP32 yanıt vermedi (12 saniye).','bad')}},12000)};
 function showData(d){
  const box=$('fields');box.replaceChildren();
  const num=(v,dec=1,unit='')=>typeof v==='number'&&Number.isFinite(v)?v.toLocaleString('tr-TR',{minimumFractionDigits:dec,maximumFractionDigits:dec})+(unit?' '+unit:''):'—';
@@ -164,5 +229,5 @@ function showData(d){
  $('mapslink').classList.remove('hidden');
 }
 window.addEventListener('resize',resizeMap);
-window.addEventListener('pagehide',()=>{stopPolling();if(client)client.end(true);client=null;abortPending();clearPosition()});
+window.addEventListener('pagehide',()=>{stopPolling();stopSessionTimers();if(client)client.end(true);client=null;abortPending();clearPosition()});
 </script></body></html>
