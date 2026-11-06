@@ -248,7 +248,15 @@ function showData(d){
  const num=(v,dec=1,unit='')=>typeof v==='number'&&Number.isFinite(v)?v.toLocaleString('tr-TR',{minimumFractionDigits:dec,maximumFractionDigits:dec})+(unit?' '+unit:''):'—';
  const flag=d.fix_ok===true;
  const target=d.route_mode==='ISE'?'İş':d.route_mode==='EVE'?'Ev':null;
- const routeReady=d.route_valid===true;
+ // v4.0.12: Rota 2.0/C3 gibi en kisa MESAFELI gecerli rotayi goster.
+ // Sure en kisa mesafenin kendi ETA'sidir; en hizli rota secilmiyor.
+ const isRoute=(v,metre,dakika)=>v===true && Number.isFinite(metre) && metre>=0 && Number.isFinite(dakika) && dakika>=0;
+ const valid1=isRoute(d.route_valid,d.route_distance_m,d.route_eta_min);
+ const valid2=isRoute(d.route2_valid,d.route2_distance_m,d.route2_eta_min);
+ const use2=valid2 && (!valid1 || d.route2_distance_m<d.route_distance_m);
+ const routeReady=valid1||valid2;
+ const selectedDistance=routeReady?(use2?d.route2_distance_m:d.route_distance_m):null;
+ const selectedEta=routeReady?(use2?d.route2_eta_min:d.route_eta_min):null;
  const makeHead=(label,parent)=>{const h=document.createElement('div');h.className='sectionhead';h.textContent=label;parent.append(h)};
  const makeGrid=(parent,cls)=>{const g=document.createElement('div');g.className=cls;parent.append(g);return g};
  const makeItem=(grid,label,value)=>{
@@ -263,8 +271,8 @@ function showData(d){
  makeItem(cards,'GPS Durumu',flag?'GPS Aktif':'GPS Yok');
  makeItem(cards,'Hız',num(d.speed,1,'km/sa'));
  makeItem(cards,'Hedef',target||'—');
- makeItem(cards,target==='İş'?'İşe Mesafe':target==='Ev'?'Eve Mesafe':'Rota Mesafesi',routeReady?num(typeof d.route_distance_m==='number'?d.route_distance_m/1000:null,1,'km'):'—');
- makeItem(cards,target==='İş'?'İşe Süre':target==='Ev'?'Eve Süre':'Rota Süresi',routeReady?num(d.route_eta_min,0,'dk'):'—');
+ makeItem(cards,target==='İş'?'İşe Mesafe':target==='Ev'?'Eve Mesafe':'Rota Mesafesi',routeReady?num(selectedDistance/1000,1,'km'):'—');
+ makeItem(cards,target==='İş'?'İşe Süre':target==='Ev'?'Eve Süre':'Rota Süresi',routeReady?num(selectedEta,0,'dk'):'—');
  makeItem(cards,'Rakım',num(d.altitude,1,'m'));
  makeItem(cards,'Ölçüm Yaşı',num(typeof d.age_ms==='number'?d.age_ms/1000:null,1,'sn'));
  makeItem(cards,'Son Sorgulama',new Date().toLocaleTimeString('tr-TR'));
