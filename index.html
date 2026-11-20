@@ -277,19 +277,8 @@ function showData(d){
  const motor=document.createElement('section');motor.className='info-section motor-section';box.append(motor);
  makeHead('Araç ve Motor',motor);
  const mg=makeGrid(motor,'grid');
- makeItem(mg,'Motor Devri','— RPM');
- makeItem(mg,'Yakıt Seviyesi','— %');
- makeItem(mg,'Su Sıcaklığı','— °C');
- makeItem(mg,'Motor Yükü','— %');
  makeItem(mg,'Akü Gerilimi','— V');
  makeItem(mg,'Anlık Tüketim','— L/100 km');
- // UART OBD values originate in Jetta C3, verified by the KAPI main ESP32.
- // Missing/stale/unsupported measurements remain dashes; no assumptions.
- makeItem(mg,'OBD Bağlantısı',d.obd_connected===true?'Bağlı':d.obd_connected===false?'Bağlı değil':'—');
- makeItem(mg,'Kalan Yakıt',num(d.obd_fuel_l,1,'L'));
- makeItem(mg,'Kabin Sıcaklığı',num(d.obd_cabin_c,1,'°C'));
- makeItem(mg,'Dış Sıcaklık','—'); // no verified DID yet
- makeItem(mg,'MFA2 Ortalama Tüketim',num(d.obd_mfa2_l100,1,'L/100 km'));
  text('raw',JSON.stringify(d,null,2));
  text('stamp','• Son yanıt '+new Date().toLocaleTimeString('tr-TR'));
  const lat=d.lat,lon=d.lon,age=d.age_ms;
